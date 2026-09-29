@@ -1,272 +1,203 @@
-# 🌍 Django Tourism & Content Management Website
+# 🎙️ Time To Talk — Django Website
 
-A Django-based tourism and content management website built with **Python and Django 5.2**.
+A Django-based website built by integrating a pre-designed podcast-themed frontend template with a custom Django backend.
 
-The project focuses on implementing a functional Django backend on top of a pre-designed HTML frontend, including authentication, blog management, comments, search, categories, tags, pagination, protected posts, admin management, static/media files, and other Django features.
+The project was developed as a practical Django project to implement backend functionality such as page routing, contact form handling, email subscription, database models, Django ModelForms, admin management, messages, static files, and template integration.
+
+> **Note:** The frontend design is based on a pre-designed **Pod Talk** HTML template from TemplateMo. The main development work focused on integrating the frontend with Django and implementing the backend functionality.
 
 ---
 
 ## ✨ Features
 
-### 🔐 User Authentication
+### 🏠 Website Pages
 
-* User registration
-* User login and logout
-* Django built-in authentication system
-* `AuthenticationForm` for login
-* `UserCreationForm` for registration
-* Protected views using `@login_required`
-* Authentication status displayed dynamically in the base template
-* Error messages for invalid login credentials
-* Preventing authenticated users from accessing login and registration pages
-* Protected logout functionality
+The project includes several website pages:
 
----
-
-### 📝 Blog System
-
-The project includes a complete blog system with:
-
-* Blog post management
-* Individual blog post pages
-* Categories
-* Tags using `django-taggit`
-* Author filtering
-* Category filtering
-* Tag filtering
-* Published / unpublished posts
-* Scheduled publishing using `published_date`
-* View counter
-* Search functionality
-* Pagination
-* Custom template tags
+* Home page
+* About page
+* Contact page
+* Listing page
+* Detail page
+* Shared base template
+* Navigation between Django views using named URLs
 
 ---
 
-### 🔒 Protected Blog Posts
+### 📩 Contact Form
 
-Blog posts can optionally be protected for authenticated users.
+The website includes a contact form implemented using Django `ModelForm`.
 
-Each post contains a `login_required` field that can be enabled from the Django Admin.
+Users can submit:
 
-When enabled:
+* Full name
+* Email address
+* Company
+* Message
 
-* Unauthenticated users are redirected to the login page.
-* Authenticated users can access the post normally.
+Submitted contact information is stored in the database and can be managed through the Django Admin panel.
 
 Example:
 
 ```python
-if not post.login_required or request.user.is_authenticated:
-    return render(
-        request,
-        "blog/blog-single.html",
-        context
-    )
-else:
-    return HttpResponseRedirect(
-        reverse("accounts:login")
-    )
+class ContactForm(forms.ModelForm):
+    class Meta:
+        model = Contact
+        fields = "__all__"
 ```
+
+The contact form also uses Django's Messages Framework to display success and error messages after submission.
 
 ---
 
-### 💬 Comment System
+### 📧 Email Subscription
 
-The project includes a custom Django-based comment system.
+The website includes an email subscription form in the footer.
 
-Comments are handled using Django `ModelForm` and require administrator approval before being displayed.
+Users can submit their email address to subscribe.
 
-Main features:
+The submitted email addresses are stored in the database using a dedicated `Email` model.
 
-* Comment submission form
-* Name, email, subject, and message fields
-* Comment approval system
-* Django Admin management
-* Success and error messages using Django Messages Framework
-
-Example form:
+Example:
 
 ```python
-class CommentForm(forms.ModelForm):
-    class Meta:
-        model = Comment
-        fields = [
-            "post",
-            "name",
-            "email",
-            "subject",
-            "message",
-        ]
-```
+class Email(models.Model):
+    email = models.EmailField()
 
-Comments are not displayed publicly until they are approved from the Django Admin.
+    def __str__(self):
+        return self.email
+```
 
 ---
 
 ### 🛠️ Django Admin
 
-The Django Admin panel is used to manage the main content and functionality of the website.
+The Django Admin panel is used to manage submitted contact information and email subscriptions.
 
-Administrators can manage:
+The Contact model includes:
 
-* Blog posts
-* Authors
-* Categories
-* Tags
-* Comments
-* Publication status
-* Scheduled publication dates
-* Login-required posts
-* Post view counts
-* Search and filtering
-* Rich-text blog content
+* Date hierarchy
+* Custom list display
+* Filtering
+* Search functionality
 
-Example admin configuration:
+Example:
 
 ```python
-list_display = (
-    "title",
-    "author",
-    "counted_views",
-    "status",
-    "login_required",
-    "published_date",
-    "created_date",
-)
+@admin.register(Contact)
+class ContactAdmin(admin.ModelAdmin):
+    date_hierarchy = "created_date"
+    list_display = (
+        "full_name",
+        "email",
+        "created_date",
+    )
+    list_filter = ("email",)
+    search_fields = (
+        "name",
+        "message",
+    )
 ```
+
+Email subscriptions can also be managed through the Django Admin panel.
 
 ---
 
-### 🖼️ Static & Media Files
+### 📝 Django Forms & ModelForms
 
-The project separates static assets and uploaded media.
+The project uses Django `ModelForm` to handle user-submitted data.
 
-**Static files include:**
+Two forms are implemented:
+
+* `ContactForm`
+* `EmailForm`
+
+These forms are connected directly to their corresponding database models.
+
+---
+
+### 💬 Django Messages Framework
+
+The contact form uses Django's Messages Framework to provide feedback after form submission.
+
+Users receive a success message when their contact request is submitted successfully and an error message when the form submission fails.
+
+---
+
+### 🧭 URL Routing
+
+The project uses Django's URL routing system with named URL patterns.
+
+The `website` application provides routes for:
+
+```text
+/
+about/
+contact/
+subscribe_email
+```
+
+The `pages` application provides:
+
+```text
+pages/
+pages/listing-page/
+pages/detail-page/
+```
+
+Named URLs are used throughout the templates for navigation.
+
+---
+
+### 🎨 Static Files
+
+The project uses Django's static files system for frontend assets.
+
+Static resources include:
 
 * CSS
 * JavaScript
-* Images
+* Bootstrap
+* Bootstrap Icons
+* Owl Carousel
 * Fonts
+* Images
 
-**Media files include:**
-
-* Uploaded blog images
-* Images uploaded through the Django Summernote editor
-
-Project directories:
+Project static directory:
 
 ```text
 statics/
-media/
 ```
+
+The frontend JavaScript files include:
+
+* jQuery
+* Bootstrap Bundle
+* Owl Carousel
+* Custom JavaScript
 
 ---
 
-## 🔎 Blog Search
+### 🧩 Template Inheritance
 
-The blog includes a search feature for finding posts based on their content.
+The project uses Django template inheritance through a shared `base.html`.
+
+The base template contains common website elements such as:
+
+* Navigation
+* Footer
+* Subscription form
+* Static asset loading
+* JavaScript files
+
+Individual pages extend the base template using Django's template inheritance system.
 
 Example:
 
-```python
-posts = posts.filter(content__contains=s)
+```django
+{% extends "base.html" %}
+{% load static %}
 ```
-
----
-
-## 📄 Pagination
-
-Blog posts are paginated to improve navigation and page organization.
-
-The project currently displays **3 posts per page**.
-
-Example:
-
-```python
-posts = Paginator(posts, 3)
-```
-
----
-
-## 🏷️ Tags & Categories
-
-The blog uses:
-
-* Django `ManyToManyField` for categories
-* `django-taggit` for tags
-
-Users can browse posts through:
-
-* Categories
-* Tags
-* Authors
-
----
-
-## 🗺️ Sitemap & robots.txt
-
-The project includes support for:
-
-* Django sitemap generation
-* `robots.txt`
-
-These features are used to provide basic search-engine-related functionality for the website.
-
----
-
-## ✍️ Django Summernote
-
-The Django Admin uses **Django Summernote** to provide a rich-text editing interface for blog content.
-
-This makes it possible to create formatted blog posts and manage content more conveniently through the Admin panel.
-
----
-
-## 🔧 Django Debug Toolbar
-
-**Django Debug Toolbar** is included as a development tool for inspecting and debugging Django requests and application behavior during development.
-
----
-
-## 🤖 CAPTCHA
-
-The project uses Django CAPTCHA functionality for forms that require CAPTCHA protection.
-
-The following packages are included:
-
-* `django-simple-captcha`
-* `django-multi-captcha-admin`
-
----
-
-## 🌐 Django Sites Framework
-
-The project uses Django's **Sites Framework** for site-level configuration and functionality.
-
----
-
-## 🧩 Custom Template Tags
-
-The `blog` application contains custom template tags:
-
-```text
-blog/
-└── templatetags/
-```
-
-These tags are used to provide reusable functionality inside Django templates.
-
----
-
-## 🧪 Response Test Endpoints
-
-The project also includes simple endpoints for testing:
-
-* HTTP responses
-* JSON responses
-
-These endpoints were implemented for learning and testing Django response handling.
 
 ---
 
@@ -275,32 +206,24 @@ These endpoints were implemented for learning and testing Django response handli
 ### Backend
 
 * 🐍 Python
-* 🌐 Django 5.2.15
+* 🌐 Django 5.2
 * 🗄️ Django ORM
 * 📝 Django Forms & ModelForms
-* 🔐 Django Authentication
 * 🛠️ Django Admin
 * 💬 Django Messages Framework
 * 🧩 Django Templates
+* 🔗 Django URL Routing
 
 ### Frontend
 
 * HTML5
 * CSS3
-* Bootstrap
+* Bootstrap 5
 * JavaScript
+* jQuery
+* Owl Carousel
+* Bootstrap Icons
 * Django Template Language
-
-### Django Packages
-
-* `django-taggit`
-* `django-summernote`
-* `django-debug-toolbar`
-* `django-simple-captcha`
-* `django-multi-captcha-admin`
-* `django-extensions`
-* `django-ranged-response`
-* `django-robots`
 
 ### Database
 
@@ -317,22 +240,12 @@ These endpoints were implemented for learning and testing Django response handli
 ## 📁 Project Structure
 
 ```text
-mysite/
+time-to-talk-website/
 │
-├── accounts/
+├── pages/
 │   ├── migrations/
 │   ├── admin.py
 │   ├── apps.py
-│   ├── models.py
-│   ├── urls.py
-│   └── views.py
-│
-├── blog/
-│   ├── migrations/
-│   ├── templatetags/
-│   ├── admin.py
-│   ├── apps.py
-│   ├── forms.py
 │   ├── models.py
 │   ├── urls.py
 │   └── views.py
@@ -346,19 +259,34 @@ mysite/
 │   ├── urls.py
 │   └── views.py
 │
-├── mysite/
-│   ├── setting/
+├── talksite/
+│   ├── __init__.py
 │   ├── settings.py
 │   ├── urls.py
 │   ├── asgi.py
 │   └── wsgi.py
 │
 ├── templates/
+│   ├── base.html
+│   ├── pages/
+│   │   ├── detail-page.html
+│   │   └── listing-page.html
+│   │
+│   └── website/
+│       ├── index.html
+│       ├── about.html
+│       └── contact.html
+│
 ├── statics/
-├── media/
+│   ├── css/
+│   ├── fonts/
+│   ├── images/
+│   └── js/
+│
 ├── manage.py
 ├── requirements.txt
 ├── .gitignore
+├── .gitattributes
 └── LICENSE
 ```
 
@@ -374,25 +302,14 @@ Before running the project, make sure you have:
 
 All required Python packages are listed in `requirements.txt`.
 
-The project dependencies include:
+The project currently uses the following Python dependencies:
 
 * `Django`
-* `django-taggit`
-* `django-summernote`
-* `django-debug-toolbar`
-* `django-simple-captcha`
-* `django-multi-captcha-admin`
-* `django-extensions`
-* `django-ranged-response`
-* `django-robots`
-* `Pillow`
-* `bleach`
-* `webencodings`
 * `asgiref`
 * `sqlparse`
 * `tzdata`
 
-The `requirements.txt` file contains the installed package versions for the project.
+The `requirements.txt` file contains the package versions and version constraints used by the project.
 
 ---
 
@@ -401,8 +318,8 @@ The `requirements.txt` file contains the installed package versions for the proj
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/sepehrabbaspour/mysite.git
-cd mysite
+git clone https://github.com/sepehrabbaspour/time-to-talk-website.git
+cd time-to-talk-website
 ```
 
 ### 2. Create a virtual environment
@@ -421,7 +338,7 @@ python3 -m venv env
 source env/bin/activate
 ```
 
-> The virtual environment name `env` is only an example. You can use any name you prefer.
+> The virtual environment name `env` is only a local convention. You can use any name you prefer.
 
 ---
 
@@ -432,8 +349,6 @@ All required Python packages are listed in `requirements.txt`.
 ```bash
 pip install -r requirements.txt
 ```
-
-This installs the Django packages and other dependencies required by the project, including CAPTCHA, Taggit, Summernote, Debug Toolbar, and other packages used by the application.
 
 ---
 
@@ -479,7 +394,7 @@ http://127.0.0.1:8000/admin/
 
 ## 🗄️ Database
 
-The project uses **SQLite** during development.
+The project uses **SQLite** as its database during development.
 
 Database configuration:
 
@@ -492,15 +407,20 @@ DATABASES = {
 }
 ```
 
+The database stores data such as:
+
+* Contact form submissions
+* Email subscriptions
+
 SQLite was chosen for simplicity during development and learning.
 
 ---
 
 ## 📝 Development Notes
 
-This project was developed as a Django learning and portfolio project.
+This project was developed primarily as a Django learning and portfolio project.
 
-The frontend was based on a pre-designed HTML template, while the main development work focused on implementing the Django backend and integrating the frontend with Django.
+The frontend design was based on a pre-designed **Pod Talk** HTML template, while the main development work focused on integrating the frontend with Django and implementing backend functionality.
 
 The project covers practical Django concepts including:
 
@@ -510,21 +430,16 @@ The project covers practical Django concepts including:
 * Models
 * Django ORM
 * Forms and ModelForms
-* Authentication
-* Access control
 * Django Admin
 * Template inheritance
-* Custom template tags
-* Static and media files
-* Pagination
-* Search
-* Categories and tags
-* Comments
+* Static files
+* Database migrations
+* SQLite
 * Messages Framework
-* Sitemap
-* CAPTCHA
-* Django Sites Framework
-* Development and debugging tools
+* Form validation
+* Handling POST requests
+* Named URL patterns
+* Serving static assets
 
 The project is currently intended for development and portfolio purposes and has not been deployed as a production website.
 
@@ -535,17 +450,13 @@ The project is currently intended for development and portfolio purposes and has
 Possible future improvements include:
 
 * 🌐 Production deployment
-* 🗄️ PostgreSQL database
 * 🔐 Environment variable management
-* 🔌 REST API
-* 🔎 Improved search functionality
-* 💬 Improved relationship between comments and users
-* 🧪 Automated tests
-* 🐳 Docker support
-* 🔒 Production security configuration
-* 📧 Email verification
-* 🔑 Password reset functionality
-* 📱 Improved frontend responsiveness
+* 📧 Email notifications for contact submissions and subscriptions
+* 🔎 Functional website search
+* 🧪 Adding automated tests
+* 🗄️ PostgreSQL database integration
+* 📱 Further frontend responsiveness improvements
+* 🔒 Improved production security configuration
 
 ---
 
@@ -553,7 +464,7 @@ Possible future improvements include:
 
 **Sepehr Abbaspour**
 
-Computer Science Graduate
+Computer Engineering Graduate
 Python & Django Backend Developer
 
 🔗 GitHub:
